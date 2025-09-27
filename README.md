@@ -103,15 +103,36 @@
 
 В этом задании вам нужно предоставить только диаграммы в модели C4. Мы не просим вас отдельно описывать получившиеся микросервисы и то, как вы определили взаимодействия между компонентами To-Be системы. Если вы правильно подготовите диаграммы C4, они и так это покажут.
 
-**Диаграмма контейнеров (Containers)**
+## 2.1 **Диаграмма контейнеров (Containers)**
 
-Добавьте диаграмму.
+![Smarthouse_Container.png](schemas/to_be_system/containter/Smarthouse_Container.png)
 
-**Диаграмма компонентов (Components)**
+[Smarthouse_Container.puml](schemas/to_be_system/containter/Smarthouse_Container.puml)
+
+## 2.2 **Диаграмма компонентов (Components)**
 
 Добавьте диаграмму для каждого из выделенных микросервисов.
+### 2.2.1 Сервис Управления Устройствами
+![Smarthouse_DeviceManagementService.png](schemas/to_be_system/component/Smarthouse_DeviceManagementService.png)
 
-**Диаграмма кода (Code)**
+[Smarthouse_DeviceManagementService.puml](schemas/to_be_system/component/Smarthouse_DeviceManagementService.puml)
+
+### 2.2.2 Сервис Телеметрии
+![Smarthouse_TelemetryService.png](schemas/to_be_system/component/Smarthouse_TelemetryService.png)
+
+[Smarthouse_TelemetryService.puml](schemas/to_be_system/component/Smarthouse_TelemetryService.puml)
+
+### 2.2.3 Медиа Сервис
+![Smarthouse_VideoService.png](schemas/to_be_system/component/Smarthouse_MediaService.png)
+
+[Smarthouse_VideoService.puml](schemas/to_be_system/component/Smarthouse_MediaService.puml)
+
+### 2.2.4 Щлюз умного дома
+![Smarthouse_Hub.png](schemas/to_be_system/component/Smarthouse_Hub.png)
+
+[Smarthouse_Hub.puml](schemas/to_be_system/component/Smarthouse_Hub.puml)
+
+## 2.3 **Диаграмма кода (Code)**
 
 Добавьте одну диаграмму или несколько.
 
