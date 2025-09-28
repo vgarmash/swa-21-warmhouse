@@ -1,0 +1,59 @@
+@startuml
+title Умный Дом (новое решение). Диаграмма Кода для Сервиса Телеметрии.
+
+footer drawn with PlantUML v. %version() and C4-PlantUML v. C4Version()
+
+package ru.smarthouse.telemetry {
+
+record Metric {
+    - DeviceID: string
+    - SensorID: string
+    - Value: float64
+    - Type: string
+    - Timestamp: time.Time
+}
+
+class MessageBroker {
+    - subscribers: []chan Metric
+    - mu: sync.RWMutex
+
+    + Subscribe(): chan Metric
+    + Start()
+}
+
+class MetricConsumer {
+    - dbClient: *InfluxDbClient
+    - topic: Topic
+
+    + OnMessage(message: Message)
+}
+
+class InfluxDbClient {
+    - datasource: DataSource
+    + Query()
+}
+
+class TelemetryService {
+    - dbClient: *InfluxDbClient
+
+    + GetMetrics(deviceID: string, from: time.Time, to: time.Time): ([]Metric, error)
+}
+
+class APIGateway {
+    - service: *TelemetryService
+
+    + Start()
+    + handleGetMetrics()
+}
+
+    APIGateway ..> TelemetryService : использует
+    TelemetryService ..> InfluxDbClient : использует
+    MetricConsumer ..> InfluxDbClient : использует
+    MetricConsumer ..> MessageBroker
+    MetricConsumer ..> Metric : сохраняет
+    TelemetryService ..> Metric : читает
+}
+
+
+
+@enduml

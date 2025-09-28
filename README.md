@@ -127,14 +127,16 @@
 
 [Smarthouse_VideoService.puml](schemas/to_be_system/component/Smarthouse_MediaService.puml)
 
-### 2.2.4 Щлюз умного дома
+### 2.2.4 Шлюз умного дома
 ![Smarthouse_Hub.png](schemas/to_be_system/component/Smarthouse_Hub.png)
 
 [Smarthouse_Hub.puml](schemas/to_be_system/component/Smarthouse_Hub.puml)
 
 ## 2.3 **Диаграмма кода (Code)**
 
-Добавьте одну диаграмму или несколько.
+![Smarthouse_TelemetryService_Code.png](schemas/to_be_system/code/Smarthouse_TelemetryService_Code.png)
+
+[Smarthouse_TelemetryService_Code.puml](schemas/to_be_system/code/Smarthouse_TelemetryService_Code.puml)
 
 # Задание 3. Разработка ER-диаграммы
 
