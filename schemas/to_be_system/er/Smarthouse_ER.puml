@@ -1,0 +1,90 @@
+@startuml
+
+footer drawn with PlantUML v. %version() and C4-PlantUML v. C4Version()
+
+entity User {
+    * id: NUMBER
+    * name: TEXT
+    * is_admin: BOOLEAN
+}
+
+entity User_House {
+    * id: NUMBER
+    * user_id: NUMBER
+    * house_id: NUMBER
+}
+
+entity House {
+    * id: NUMBER
+    * name: TEXT
+}
+
+entity Location {
+    * id: NUMBER
+    * name: TEXT
+    * house_id: NUMBER
+}
+
+entity Hub {
+    * id: NUMBER
+    * name: TEXT
+    * house_id: NUMBER
+    serial_number: TEXT
+}
+
+
+entity Device {
+    * id: NUMBER
+    * name: TEXT
+    * house_id: NUMBER
+    location_id: NUMBER
+    * DeviceType: type
+    serial_number: TEXT
+}
+
+entity DeviceType {
+    * id: NUMBER
+    * name: TEXT
+}
+
+entity DataType {
+    * id: NUMBER
+    * name: TEXT
+}
+
+entity Sensor {
+    * id: NUMBER
+    * name: TEXT
+    * house_id: NUMBER
+    location_id: NUMBER
+    * DeviceType: type
+    serial_number: TEXT
+}
+
+record Measurement {
+    * source_id: NUMBER
+    * source_type: DeviceType
+    * value: TEXT
+    * data_type: DataType
+    * Timestamp: time.Time
+}
+
+User ||-right-|{ User_House
+House ||-left-|{ User_House
+
+House ||--|{  Location
+House ||--|{  Device
+House ||--|{  Sensor
+House ||--|{  Hub
+Location |o--|{  Device
+Location |o--|{  Sensor
+Sensor ||--||  DeviceType
+Device ||--||  DeviceType
+
+Sensor |o--|{  Measurement
+Device |o--|{  Measurement
+Hub |o--|{  Measurement
+
+Measurement ||--|| DataType
+
+@enduml

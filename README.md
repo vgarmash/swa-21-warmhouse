@@ -140,7 +140,9 @@
 
 # Задание 3. Разработка ER-диаграммы
 
-Добавьте сюда ER-диаграмму. Она должна отражать ключевые сущности системы, их атрибуты и тип связей между ними.
+![Smarthouse_ER.png](schemas/to_be_system/er/Smarthouse_ER.png)
+
+[Smarthouse_ER.puml](schemas/to_be_system/er/Smarthouse_ER.puml)
 
 # Задание 4. Создание и документирование API
 
