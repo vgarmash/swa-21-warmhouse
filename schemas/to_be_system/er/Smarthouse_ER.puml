@@ -32,7 +32,6 @@ entity Hub {
     serial_number: TEXT
 }
 
-
 entity Device {
     * id: NUMBER
     * name: TEXT
@@ -61,6 +60,28 @@ entity Sensor {
     serial_number: TEXT
 }
 
+entity Scenario {
+    * id: NUMBER
+    * name: TEXT
+    * house_id: NUMBER
+    * formula: JSON
+}
+
+entity Configuration {
+    * id: NUMBER
+    * name: TEXT
+    * house_id: NUMBER
+    * device_id: NUMBER
+    * device_type: DeviceType
+}
+
+entity ConfigurationItem {
+    * id: NUMBER
+    * configuration_id: NUMBER
+    * key: text
+    * value: text
+}
+
 record Measurement {
     * source_id: NUMBER
     * source_type: DeviceType
@@ -76,10 +97,13 @@ House ||--|{  Location
 House ||--|{  Device
 House ||--|{  Sensor
 House ||--|{  Hub
+House ||--|{  Scenario
 Location |o--|{  Device
 Location |o--|{  Sensor
 Sensor ||--||  DeviceType
 Device ||--||  DeviceType
+Device ||--||  Configuration
+Configuration ||--|{  ConfigurationItem
 
 Sensor |o--|{  Measurement
 Device |o--|{  Measurement
