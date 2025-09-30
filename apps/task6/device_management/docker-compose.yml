@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:14
+    container_name: device-postgres
+    environment:
+      POSTGRES_DB: device_management
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - device-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mqtt:
+    image: eclipse-mosquitto:1.6.15
+    container_name: device-mqtt
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+    networks:
+      - device-network
+    restart: unless-stopped
+
+  device-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: device-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/device_management
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: password
+      MQTT_BROKER_URL: tcp://mqtt:1883
+      MQTT_CLIENT_ID: device-service-docker
+      MQTT_TOPIC: devices/events
+      SPRING_PROFILES_ACTIVE: docker
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+      - mqtt
+    networks:
+      - device-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  device-network:
+    driver: bridge

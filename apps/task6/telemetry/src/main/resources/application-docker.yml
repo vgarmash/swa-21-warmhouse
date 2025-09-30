@@ -1,0 +1,53 @@
+spring:
+  application:
+    name: telemetry-service
+
+server:
+  port: 8080
+  servlet:
+    context-path: /
+
+mqtt:
+  broker-url: tcp://mosquitto:1883  # Должен быть именно такой формат
+  client-id: telemetry-service-docker
+  topic: telemetry/#
+  qos: 1
+
+influxdb:
+  url: http://influxdb:8086
+  token: my-super-secret-auth-token
+  org: my-org
+  bucket: telemetry
+  measurement-name: device_telemetry
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+      show-components: always
+    metrics:
+      enabled: true
+    info:
+      enabled: true
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+  show-actuator: true
+
+logging:
+  level:
+    com.example.telemetryservice: INFO
+    org.springframework.integration: WARN
+    org.springframework.boot.actuate: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

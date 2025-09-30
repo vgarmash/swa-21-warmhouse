@@ -1,0 +1,83 @@
+spring:
+  profiles:
+    active: default
+  datasource:
+    url: jdbc:postgresql://localhost:5432/device_management
+    username: postgres
+    password: password
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    show-sql: true
+
+mqtt:
+  broker-url: tcp://localhost:1883
+  client-id: device-service
+  topic: devices/events
+
+server:
+  port: 8080
+
+# SpringDoc OpenAPI Configuration
+springdoc:
+  api-docs:
+    path: /api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    operations-sorter: method
+    tags-sorter: alpha
+    display-request-duration: true
+    filter: true
+  packages-to-scan: com.example.devicemanagement.controller
+  paths-to-match: /**
+
+logging:
+  level:
+    com.example.devicemanagement: INFO
+    org.springframework: INFO
+    org.hibernate: WARN
+
+---
+# Docker профиль
+spring:
+  config:
+    activate:
+      on-profile: docker
+  datasource:
+    url: jdbc:postgresql://postgres:5432/device_management
+    username: postgres
+    password: password
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        show_sql: false
+
+mqtt:
+  broker-url: tcp://mqtt:1883
+  client-id: device-service-docker
+  topic: devices/events
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+
+logging:
+  level:
+    com.example.devicemanagement: INFO
+    org.springframework: INFO
+    org.hibernate: WARN
