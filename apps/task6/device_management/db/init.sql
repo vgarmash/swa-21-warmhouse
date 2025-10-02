@@ -1,4 +1,4 @@
-CREATE DATABASE device_management;
+--CREATE DATABASE device_management;
 
 -- Таблица будет создана автоматически Hibernate, но вот ее структура:
 /*

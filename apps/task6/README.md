@@ -1,60 +1,58 @@
-# Smart Home Sensor Management API
+# Умный Дом - Микросервисная Архитектура
 
-## Prerequisites
+Проект представляет собой систему умного дома с микросервисной архитектурой, использующей Docker Compose для оркестрации.
 
-- Docker and Docker Compose
+## Сервисы и порты
 
-## Getting Started
+### 🏠 Основные сервисы
 
-### Option 1: Using Docker Compose (Recommended)
+- **Device Management Service** - управление устройствами
+    - Порт: `8080`
+    - API: `http://localhost:8080`
 
-The easiest way to start the application is to use Docker Compose:
+- **Smart Home Service (Go)** - основной сервис умного дома
+    - Порт: `8081`
+    - API: `http://localhost:8081`
 
-```bash
-./init.sh
-```
+- **Telemetry Service** - сбор и обработка телеметрии
+    - Порт: `8082`
+    - API: `http://localhost:8082`
 
-This script will:
+- **Temperature API** - сервис температуры
+    - Порт: `8085`
+    - API: `http://localhost:8085`
 
-1. Build and start the PostgreSQL and application containers
-2. Wait for the services to be ready
-3. Display information about how to access the API
+### 🗄️ Базы данных
 
-Alternatively, you can run Docker Compose directly:
+- **PostgreSQL (Device Management)**
+    - Порт: `5432`
+    - База данных: `device_management`
 
-```bash
-docker-compose up -d
-```
+- **PostgreSQL (Smart Home)**
+    - Порт: `5433`
+    - База данных: `smarthome`
 
-The API will be available at http://localhost:8080
+- **InfluxDB** - для хранения временных рядов телеметрии
+    - Порт: `8086`
+    - UI: `http://localhost:8086`
 
-### Option 2: Manual setup
+### 📊 Мониторинг и визуализация
 
-If you prefer to run the application without Docker:
+- **Grafana** - дашборды и визуализация
+    - Порт: `3000`
+    - URL: `http://localhost:3000`
+    - Логин: `admin`
+    - Пароль: `admin`
 
-1. Start the PostgreSQL database:
+### 🔌 MQTT Брокер
 
-```bash
-docker-compose up -d postgres
-```
+- **Mosquitto MQTT Broker**
+    - MQTT порт: `1883`
+    - WebSocket порт: `9001`
 
-2. Build and run the application:
+## Быстрый старт
 
-```bash
-go build -o smarthome
-./smarthome
-```
-
-## API Testing
-
-A Postman collection is provided for testing the API. Import the `smarthome-api.postman_collection.json` file into Postman to get started.
-
-## API Endpoints
-
-- `GET /health` - Health check
-- `GET /api/v1/sensors` - Get all sensors
-- `GET /api/v1/sensors/:id` - Get a specific sensor
-- `POST /api/v1/sensors` - Create a new sensor
-- `PUT /api/v1/sensors/:id` - Update a sensor
-- `DELETE /api/v1/sensors/:id` - Delete a sensor
-- `PATCH /api/v1/sensors/:id/value` - Update a sensor's value and status
+1. **Клонировать репозиторий**
+   ```bash
+   git clone <repository-url>
+   cd smart-home

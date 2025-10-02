@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://postgres:5432/device_management
+    url: jdbc:postgresql://postgres-device:5432/devicemanagement
     username: postgres
     password: password
   jpa:
@@ -12,9 +12,9 @@ spring:
         show_sql: false
 
 mqtt:
-  broker-url: tcp://mqtt:1883
-  client-id: device-service-docker
-  topic: devices/events
+  broker-url: tcp://mqtt-broker:1883
+  client-id: device-management-service
+  topic: devices/#
 
 logging:
   level:

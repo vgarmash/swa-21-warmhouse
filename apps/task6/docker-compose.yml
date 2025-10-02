@@ -1,36 +1,155 @@
-version: '3.8'
-
+# Конфигурация запуска всех сервисов для Задания 6
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: smarthome-postgres
+  # Общий MQTT брокер
+  mqtt-broker:
+    image: eclipse-mosquitto:2.0
+    container_name: shared-mosquitto
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mosquitto/config/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_log:/mosquitto/log
+    networks:
+      - smart-home-network
+    restart: unless-stopped
+
+  # Device Management Service
+  device-management:
+    build: ./device_management
+    container_name: device-management-api
+    ports:
+      - "8080:8080"
     environment:
-      POSTGRES_USER: postgres_user
-      POSTGRES_PASSWORD: postgres_password
-      POSTGRES_DB: smarthome
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-device:5432/device_management
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=password
+      - SPRING_PROFILES_ACTIVE=docker
+      - MQTT_BROKER_URL=tcp://mqtt-broker:1883
+      - MQTT_TOPIC=devices/events
+      - MQTT_CLIENT_ID=device-service-docker
+    depends_on:
+      mqtt-broker:
+        condition: service_started
+      postgres-device:
+        condition: service_healthy
+    networks:
+      - smart-home-network
+    restart: unless-stopped
+
+  # Postgres для Device Management
+  postgres-device:
+    image: postgres:16-alpine
+    container_name: postgres-device
+    environment:
+      POSTGRES_DB: device_management
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_HOST_AUTH_METHOD: trust
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./smart_home/init.sql:/docker-entrypoint-initdb.d/init.sql
-    deploy:
-      resources:
-        limits:
-          cpus: '2'
-          memory: 1G
-        reservations:
-          cpus: '0.25'
-          memory: 256M
-    command: >
-      postgres -c max_connections=1000
-               -c shared_buffers=256MB
-               -c effective_cache_size=768MB
-               -c maintenance_work_mem=64MB
-               -c checkpoint_completion_target=0.7
-               -c wal_buffers=16MB
-               -c default_statistics_target=100
+      - postgres_device_data:/var/lib/postgresql/data
+      - ./device_management/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - smart-home-network
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres_user -d smarthome" ]
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Telemetry Service
+  telemetry-service:
+    build: ./telemetry
+    container_name: telemetry-service
+    ports:
+      - "8082:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - MQTT_BROKER_URL=tcp://mqtt-broker:1883
+      - INFLUXDB_URL=http://influxdb:8086
+      - INFLUXDB_TOKEN=my-super-secret-token
+      - INFLUXDB_ORG=my-org
+      - INFLUXDB_BUCKET=telemetry
+    depends_on:
+      mqtt-broker:
+        condition: service_started
+      influxdb:
+        condition: service_healthy
+    networks:
+      - smart-home-network
+
+  # InfluxDB для Telemetry
+  influxdb:
+    image: influxdb:2.7
+    container_name: influxdb
+    ports:
+      - "8086:8086"
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=admin
+      - DOCKER_INFLUXDB_INIT_PASSWORD=password123
+      - DOCKER_INFLUXDB_INIT_ORG=smart-home
+      - DOCKER_INFLUXDB_INIT_BUCKET=telemetry
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=my-super-secret-token
+    volumes:
+      - influxdb_data:/var/lib/influxdb2
+    networks:
+      - smart-home-network
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8086/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Grafana для визуализации
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - influxdb
+    networks:
+      - smart-home-network
+
+  # Smart Home Service (Go)
+  smart-home:
+    build: ./smart_home
+    container_name: smart-home-api
+    ports:
+      - "8081:8080"
+    depends_on:
+      postgres-smart-home:
+        condition: service_healthy
+      temperature-api:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=postgres://postgres:password@postgres-smart-home:5432/smarthome
+      - TEMPERATURE_API_URL=http://temperature-api:8085
+    networks:
+      - smart-home-network
+
+  # Postgres для Smart Home
+  postgres-smart-home:
+    image: postgres:16-alpine
+    container_name: postgres-smart-home
+    environment:
+      POSTGRES_DB: smarthome
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_smarthome_data:/var/lib/postgresql/data
+      - ./smart_home/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d smarthome" ]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -38,7 +157,7 @@ services:
     tty: true
     stdin_open: true
     networks:
-      - smarthome-network
+      - smart-home-network
 
   temperature-api:
     build:
@@ -46,7 +165,7 @@ services:
       dockerfile: Dockerfile
     container_name: temperature-api
     ports:
-      - "8081:8081"
+      - "8085:8081"
     environment:
       - PORT=8081
     healthcheck:
@@ -57,30 +176,15 @@ services:
       start_period: 40s
     restart: unless-stopped
     networks:
-      - smarthome-network
-
-  app:
-    build:
-      context: ./smart_home
-      dockerfile: Dockerfile
-    container_name: smarthome-app
-    depends_on:
-      postgres:
-        condition: service_healthy
-      temperature-api:
-        condition: service_started
-    environment:
-      - DATABASE_URL=postgres://postgres_user:postgres_password@postgres:5432/smarthome
-      - TEMPERATURE_API_URL=http://temperature-api:8081
-    ports:
-      - "8080:8080"
-    restart: unless-stopped
-    networks:
-      - smarthome-network
+      - smart-home-network
 
 volumes:
-  postgres_data:
+  mosquitto_data:
+  mosquitto_log:
+  postgres_device_data:
+  postgres_smarthome_data:
+  influxdb_data:
 
 networks:
-  smarthome-network:
+  smart-home-network:
     driver: bridge

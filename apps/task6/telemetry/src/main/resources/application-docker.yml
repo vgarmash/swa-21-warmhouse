@@ -8,15 +8,15 @@ server:
     context-path: /
 
 mqtt:
-  broker-url: tcp://mosquitto:1883  # Должен быть именно такой формат
-  client-id: telemetry-service-docker
+  broker-url: tcp://mqtt-broker:1883
+  client-id: telemetry-service
   topic: telemetry/#
   qos: 1
 
 influxdb:
   url: http://influxdb:8086
-  token: my-super-secret-auth-token
-  org: my-org
+  token: my-super-secret-token
+  org: smart-home
   bucket: telemetry
   measurement-name: device_telemetry
 
