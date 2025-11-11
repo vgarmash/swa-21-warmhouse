@@ -1,0 +1,77 @@
+@startuml
+title Умный Дом (новое решение). Диаграмма Контейнеров.
+
+top to bottom direction
+
+footer drawn with PlantUML v. %version() and C4-PlantUML v. C4Version()
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+!$ICONURL = "https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/v3.0.0/icons"
+
+!include $ICONURL/devicons/postgresql.puml
+!include $ICONURL/devicons/go.puml
+!include $ICONURL/devicons/react.puml
+!include $ICONURL/devicons/java.puml
+!include $ICONURL/font-awesome-5/users.puml
+!include $ICONURL/font-awesome-5/house_user.puml
+!include $ICONURL/font-awesome-5/temperature_low.puml
+!include $ICONURL/font-awesome-5/microchip.puml
+!include $ICONURL/font-awesome-5/file_video.puml
+!include $ICONURL/font-awesome-5/lightbulb.puml
+!include $ICONURL/font-awesome/video_camera.puml
+
+!include $ICONURL/devicons2/influxdb_original.puml
+
+Person(users1, "Пользователи", "Пользователь системы Умный Дом", $sprite="users")
+
+Boundary(SmartHome, "Умный Дом") {
+
+    Boundary(wh, "Облако") {
+        System_Boundary(SmartHomeCloud, "Система Умный Дом") {
+            Container(spa, "Портал пользователя", $techn="SPA", $sprite="react", $descr="SPA с микрофронтендами, обмен состоянием через Event Bus (шина событий)")
+
+            Container(device_service, "Сервис Управления Устройствами", "Go", $sprite="go")
+            Container(tm_service, "Сервис Телеметрии", "Go", $sprite="go")
+            Container(media_service, "Медиа сервис", "Java, Media Server SDK", "Управление архивом видео и трансляция видеопотоков", $sprite="java")
+
+            ContainerQueue(queue, "Брокер сообщений", $techn="MQTT")
+        }
+    }
+
+    Boundary(house1, "Дом пользователя 1") {
+        System_Boundary(SmartHome1, "Комплект умного дома") {
+            System(hub1, "Шлюз умного дома", "Управляет всеми устройствами и датчиками, исполняет сценарии, синхронизируется с облачной системой", $type="RF433, Z-Wave, ZigBee, Bluetooth и WiFi", $sprite="house_user")
+            System(temp_sensor1, "Датчик температуры", $type="Zigbee", $sprite="temperature_low")
+            System(light_sensor1, "Датчик освещённости", $type="Z-Wave")
+            System(door_sensor1, "Датчик открытия двери", $type="RF433")
+            System(cam1, "Камера", $type="WiFi", $sprite="video_camera")
+            System(garage_door1, "Гаражные ворота", $type="Zigbee")
+            System(heater1, "Система отопления", $type="Zigbee")
+            System(lightbulb1, "Лампочка", $type="Z-Wave", $sprite="lightbulb")
+        }
+    }
+}
+
+Rel(users1, spa, "Управляют своими умными домами")
+
+Rel(spa, device_service, "Конфигурация устройств и сценариев")
+Rel(spa, tm_service, "Просмотр телеметрии")
+Rel(spa, media_service, "Просмотр видео записей или видео-потока")
+
+
+'Подключение датчиков и устройств
+BiRel(queue, hub1, "Обмен данными с шлюзом", "JSON")
+Rel_L(hub1, temp_sensor1, "Измерение температуры")
+Rel(hub1, light_sensor1, "Измерение освещённости")
+Rel(hub1, door_sensor1, "Определение статуса двери")
+Rel_D(hub1, cam1, "Получает видеопоток")
+Rel(hub1, garage_door1, "Управляет")
+Rel(hub1, heater1, "Управляет")
+Rel_R(hub1, lightbulb1, "Управляет")
+
+BiRel_D(device_service, queue, "Синхронизация конфигураций", "JSON")
+Rel_D(device_service, queue, "Отправка команд на устройства", "JSON")
+Rel_U(queue, tm_service, "Получение телеметрии", "JSON")
+Rel_U(hub1, media_service, "видеопоток", "RTMP")
+
+@enduml

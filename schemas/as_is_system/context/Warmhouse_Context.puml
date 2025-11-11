@@ -1,0 +1,41 @@
+@startuml
+title Тёплый Дом (существующее решение)
+
+top to bottom direction
+
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+HIDE_STEREOTYPE()
+
+!$ICONURL = "https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/v3.0.0/icons"
+
+!include $ICONURL/devicons/postgresql.puml
+!include $ICONURL/font-awesome-5/users.puml
+!include $ICONURL/font-awesome-5/house_user.puml
+!include $ICONURL/font-awesome-5/temperature_low.puml
+!include $ICONURL/font-awesome-5/microchip.puml
+
+Person(users, "Пользователи", "Пользователь системы Тёплый Дом", $sprite="users")
+
+System_Boundary(wh, "Центральная система управления") {
+    System(WarmhouseSystem, "Cистема Тёплый Дом", "Система мониторинга температуры и управления отоплением", $sprite="house_user")
+    SystemDb(db, "База данных", "Хранение данных о датчиках и температуре", $type="PostgreSQL", $sprite="postgresql")
+}
+
+Boundary(house1, "Дом пользователя 1") {
+    System_Ext(control_device1, "Модуль управления", "Модуль управления отоплением в доме", $sprite="microchip")
+    System_Ext(sensor1, "Датчик температуры", "Датчик для измерения температуры", $sprite="temperature_low")
+}
+
+Boundary(house_n, "Дом пользователя N") {
+    System_Ext(control_device_n, "Модуль управления", "Модуль управления отоплением в доме", $sprite="microchip")
+    System_Ext(sensor_n, "Датчик температуры", "Датчик для измерения температуры", $sprite="temperature_low")
+}
+
+Rel_R(users, WarmhouseSystem, "Смотрят температуру в доме и управляют отоплением")
+Rel(WarmhouseSystem, control_device1, "Передает команды на отопительную систему")
+Rel(WarmhouseSystem, sensor1, "Измеряет температуру")
+Rel(WarmhouseSystem, control_device_n, "Передает команды на отопительную систему")
+Rel(WarmhouseSystem, sensor_n, "Измеряет температуру")
+Rel_R(WarmhouseSystem, db, "Чтение/Запись всех данных")
+
+@enduml

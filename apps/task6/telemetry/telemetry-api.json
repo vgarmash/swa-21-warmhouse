@@ -1,0 +1,576 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Telemetry Service API",
+    "description": "Микросервис для работы с телеметрическими данными через MQTT и REST API.\n\n## Health Checks\n- **Actuator Health**: `GET /actuator/health`\n- **Service Info**: `GET /actuator/info`\n- **Metrics**: `GET /actuator/metrics`\n\n## API Documentation\n- **Swagger UI**: `GET /swagger-ui.html`\n- **OpenAPI Spec**: `GET /api-docs`\n",
+    "contact": {
+      "name": "Telemetry Service Team",
+      "email": "vgarmash@yandex.com"
+    },
+    "license": {
+      "name": "Apache 2.0",
+      "url": "http://springdoc.org"
+    },
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "Локальный сервер"
+    },
+    {
+      "url": "http://telemetry-service:8080",
+      "description": "Docker сервер"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Telemetry API",
+      "description": "API для работы с телеметрическими данными"
+    },
+    {
+      "name": "Actuator",
+      "description": "Monitor and interact",
+      "externalDocs": {
+        "description": "Spring Boot Actuator Web API Documentation",
+        "url": "https://docs.spring.io/spring-boot/docs/current/actuator-api/html/"
+      }
+    }
+  ],
+  "paths": {
+    "/api/v1/telemetry/search": {
+      "post": {
+        "tags": [
+          "Telemetry API"
+        ],
+        "summary": "Поиск телеметрических данных",
+        "description": "Поиск телеметрических данных с различными фильтрами",
+        "operationId": "searchTelemetry",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TelemetrySearchRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Успешный поиск",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseModel"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Неверные параметры запроса",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseModelListTelemetryData"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Внутренняя ошибка сервера",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseModelListTelemetryData"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/telemetry/source/{sourceId}": {
+      "get": {
+        "tags": [
+          "Telemetry API"
+        ],
+        "summary": "Получение телеметрических данных по source_id",
+        "description": "Получение телеметрических данных для конкретного источника",
+        "operationId": "getTelemetryBySource",
+        "parameters": [
+          {
+            "name": "sourceId",
+            "in": "path",
+            "description": "ID источника данных",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "example": 123
+          },
+          {
+            "name": "dataType",
+            "in": "query",
+            "description": "Тип данных для фильтрации",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "TEMPERATURE"
+          },
+          {
+            "name": "startTime",
+            "in": "query",
+            "description": "Начальное время (ISO format)",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "2024-01-15T00:00:00Z"
+          },
+          {
+            "name": "endTime",
+            "in": "query",
+            "description": "Конечное время (ISO format)",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "2024-01-15T23:59:59Z"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Лимит результатов",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 100
+            },
+            "example": 100
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Успешное получение данных",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseModelListTelemetryData"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Данные не найдены",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseModelListTelemetryData"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Внутренняя ошибка сервера",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseModelListTelemetryData"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/actuator": {
+      "get": {
+        "tags": [
+          "Actuator"
+        ],
+        "summary": "Actuator root web endpoint",
+        "operationId": "links",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/vnd.spring-boot.actuator.v3+json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "$ref": "#/components/schemas/Link"
+                    }
+                  }
+                }
+              },
+              "application/vnd.spring-boot.actuator.v2+json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "$ref": "#/components/schemas/Link"
+                    }
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "$ref": "#/components/schemas/Link"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/actuator/metrics": {
+      "get": {
+        "tags": [
+          "Actuator"
+        ],
+        "summary": "Actuator web endpoint 'metrics'",
+        "operationId": "metrics",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/vnd.spring-boot.actuator.v3+json": {
+                "schema": {
+                  "type": "object"
+                }
+              },
+              "application/vnd.spring-boot.actuator.v2+json": {
+                "schema": {
+                  "type": "object"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/actuator/metrics/{requiredMetricName}": {
+      "get": {
+        "tags": [
+          "Actuator"
+        ],
+        "summary": "Actuator web endpoint 'metrics-requiredMetricName'",
+        "operationId": "metrics-requiredMetricName",
+        "parameters": [
+          {
+            "name": "requiredMetricName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/vnd.spring-boot.actuator.v3+json": {
+                "schema": {
+                  "type": "object"
+                }
+              },
+              "application/vnd.spring-boot.actuator.v2+json": {
+                "schema": {
+                  "type": "object"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/actuator/info": {
+      "get": {
+        "tags": [
+          "Actuator"
+        ],
+        "summary": "Actuator web endpoint 'info'",
+        "operationId": "info",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/vnd.spring-boot.actuator.v3+json": {
+                "schema": {
+                  "type": "object"
+                }
+              },
+              "application/vnd.spring-boot.actuator.v2+json": {
+                "schema": {
+                  "type": "object"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/actuator/health": {
+      "get": {
+        "tags": [
+          "Actuator"
+        ],
+        "summary": "Actuator web endpoint 'health'",
+        "operationId": "health",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/vnd.spring-boot.actuator.v3+json": {
+                "schema": {
+                  "type": "object"
+                }
+              },
+              "application/vnd.spring-boot.actuator.v2+json": {
+                "schema": {
+                  "type": "object"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/actuator/health/**": {
+      "get": {
+        "tags": [
+          "Actuator"
+        ],
+        "summary": "Actuator web endpoint 'health-path'",
+        "operationId": "health-path",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/vnd.spring-boot.actuator.v3+json": {
+                "schema": {
+                  "type": "object"
+                }
+              },
+              "application/vnd.spring-boot.actuator.v2+json": {
+                "schema": {
+                  "type": "object"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "TelemetrySearchRequest": {
+        "type": "object",
+        "properties": {
+          "sourceIds": {
+            "type": "array",
+            "description": "Список ID источников для фильтрации",
+            "items": {
+              "type": "integer",
+              "description": "Список ID источников для фильтрации",
+              "format": "int64"
+            }
+          },
+          "sourceType": {
+            "type": "string",
+            "description": "Типы устройств",
+            "enum": [
+              "SENSOR",
+              "DEVICE",
+              "HUB"
+            ]
+          },
+          "dataType": {
+            "type": "string",
+            "description": "Типы данных измерений",
+            "enum": [
+              "TEMPERATURE",
+              "HUMIDITY",
+              "PRESSURE",
+              "VOLTAGE",
+              "CURRENT",
+              "POWER",
+              "ENERGY",
+              "STATE",
+              "CUSTOM"
+            ]
+          },
+          "startTime": {
+            "type": "string",
+            "description": "Начальное время для фильтрации",
+            "format": "date-time",
+            "example": "2024-01-15T00:00:00Z"
+          },
+          "endTime": {
+            "type": "string",
+            "description": "Конечное время для фильтрации",
+            "format": "date-time",
+            "example": "2024-01-15T23:59:59Z"
+          },
+          "valueContains": {
+            "type": "string",
+            "description": "Подстрока для поиска в значениях"
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Лимит результатов",
+            "format": "int32",
+            "example": 100
+          }
+        },
+        "description": "Запрос для поиска телеметрических данных"
+      },
+      "ApiResponseModel": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "Флаг успешности операции"
+          },
+          "message": {
+            "type": "string",
+            "description": "Сообщение об ошибке (если есть)"
+          },
+          "data": {
+            "type": "object",
+            "description": "Данные ответа"
+          }
+        },
+        "description": "Стандартный ответ API"
+      },
+      "ApiResponseModelListTelemetryData": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "Флаг успешности операции"
+          },
+          "message": {
+            "type": "string",
+            "description": "Сообщение об ошибке (если есть)"
+          },
+          "data": {
+            "type": "array",
+            "description": "Данные ответа",
+            "items": {
+              "$ref": "#/components/schemas/TelemetryData"
+            }
+          }
+        },
+        "description": "Стандартный ответ API"
+      },
+      "TelemetryData": {
+        "required": [
+          "data_type",
+          "source_id",
+          "source_type",
+          "timestamp",
+          "value"
+        ],
+        "type": "object",
+        "properties": {
+          "source_id": {
+            "type": "integer",
+            "description": "ID источника данных",
+            "format": "int64",
+            "example": 123
+          },
+          "source_type": {
+            "type": "string",
+            "description": "Типы устройств",
+            "example": "SENSOR",
+            "enum": [
+              "SENSOR",
+              "DEVICE",
+              "HUB"
+            ]
+          },
+          "data_type": {
+            "type": "string",
+            "description": "Типы данных измерений",
+            "example": "TEMPERATURE",
+            "enum": [
+              "TEMPERATURE",
+              "HUMIDITY",
+              "PRESSURE",
+              "VOLTAGE",
+              "CURRENT",
+              "POWER",
+              "ENERGY",
+              "STATE",
+              "CUSTOM"
+            ]
+          },
+          "value": {
+            "type": "string",
+            "description": "Значение измерения",
+            "example": "25.5"
+          },
+          "timestamp": {
+            "type": "string",
+            "description": "Временная метка измерения",
+            "format": "date-time",
+            "example": "2024-01-15T12:00:00Z"
+          }
+        },
+        "description": "Телеметрические данные устройства"
+      },
+      "Link": {
+        "type": "object",
+        "properties": {
+          "href": {
+            "type": "string"
+          },
+          "templated": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  }
+}

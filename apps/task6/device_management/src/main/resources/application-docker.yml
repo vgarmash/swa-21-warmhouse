@@ -1,0 +1,22 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://postgres-device:5432/devicemanagement
+    username: postgres
+    password: password
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        show_sql: false
+
+mqtt:
+  broker-url: tcp://mqtt-broker:1883
+  client-id: device-management-service
+  topic: devices/#
+
+logging:
+  level:
+    com.example.devicemanagement: INFO
+    org.springframework: INFO

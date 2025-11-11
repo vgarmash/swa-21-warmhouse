@@ -1,0 +1,49 @@
+@startuml
+title Умный Дом (новое решение)
+
+top to bottom direction
+
+
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+HIDE_STEREOTYPE()
+
+!$ICONURL = "https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/v3.0.0/icons"
+
+!include $ICONURL/devicons/postgresql.puml
+!include $ICONURL/font-awesome-5/users.puml
+!include $ICONURL/font-awesome-5/house_user.puml
+!include $ICONURL/font-awesome-5/digital_tachograph.puml
+
+
+Person(users1, "Пользователи дома 1", "Пользователь системы Умный Дом", $sprite="users")
+Person(users_n, "Пользователи дома N", "Пользователь системы Умный Дом", $sprite="users")
+
+Boundary(SmartHome, "Умный Дом") {
+    System_Boundary(wh, "Облако") {
+        System(SmartHomeCloud, "Система Умный Дом", "Портал пользователя, интеграция с домашними комплектами", $sprite="digital_tachograph")
+    }
+
+    System_Boundary(house1, "Дом пользователя 1") {
+        System(hub1, "Комплект умного дома", "Шлюз, датчики, устройства, камеры", $sprite="house_user")
+    }
+
+    System_Boundary(house_n, "Дом пользователя N") {
+        System(hub_n, "Комплект умного дома", "Шлюз, датчики, устройства, камеры", $sprite="house_user")
+    }
+}
+
+Rel(users1, SmartHomeCloud, "Используют облачный портал")
+Rel(users1, hub1, "Используют домашний шлюз")
+
+Rel(users_n, SmartHomeCloud, "Используют облачный портал")
+Rel(users_n, hub_n, "Используют домашний шлюз")
+
+BiRel_R(SmartHomeCloud, hub1, "Обмен данными с шлюзом")
+Rel_L(hub1, SmartHomeCloud, "видеопоток")
+
+BiRel_R(SmartHomeCloud, hub_n, "Обмен данными с шлюзом")
+Rel_L(hub_n, SmartHomeCloud, "видеопоток")
+
+
+
+@enduml

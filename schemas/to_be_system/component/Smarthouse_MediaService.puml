@@ -1,0 +1,53 @@
+@startuml
+title Умный Дом (новое решение). Диаграмма Медиа Сервиса.
+
+footer drawn with PlantUML v. %version() and C4-PlantUML v. C4Version()
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+!$ICONURL = "https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/v3.0.0/icons"
+!include $ICONURL/devicons/java.puml
+!include $ICONURL/devicons/go.puml
+!include $ICONURL/devicons/react.puml
+!include $ICONURL/font-awesome-5/file_video.puml
+
+!include $ICONURL/devicons/postgresql.puml
+
+'получения потоков видео- и аудиоданных от устройств-энкодеров по специализированным сетевым протоколам;
+'хранения данных в виде файлов архива в своей файловой системе;
+'трансляции информации из файлов архива в стандартном потоковом формате для воспроизведения на клиентских устройствах.
+
+System_Boundary(SmartHomeCloud, "Система Умный Дом") {
+    Container(spa, "Портал пользователя", $techn="SPA", $sprite="react", $descr="SPA с микрофронтендами, обмен состоянием через Event Bus (шина событий)")
+
+    Container_Boundary(device_service, "Медиа сервис") {
+        Component(load_balancer, "Балансировщик нагрузки", "Java")
+        Component(splitter, "Сплиттер", "Java", "Дублирует поток на рекордер и преобразователь HLS")
+        Component(recorder, "Рекордер", "Java", "Сохраняет видео в хранилище")
+        Component(metadata_service, "Сервис метаданных", "Java", "Генерирует индекс и прочие метаданные для видеофайлов")
+        Component(hls_encoder, "Преобразователь HLS", "Java")
+
+        Component(api, "API", "Go")
+
+        ComponentDb(s3, "Блочное хранилище", "Хранение архива видео", $techn="S3", $sprite="file_video")
+        ComponentDb(media_db, "База данных", "Хранение метаданных о видеофайлах", $techn="PostgreSQL", $sprite="postgresql")
+    }
+}
+
+
+System(hub1, "Шлюз умного дома", "Ретранслирует видеопоток со всех камер")
+
+Rel(spa, api, "Отправляет запросы в API для воспроизведения видео", "HTTPS")
+Rel(api, metadata_service, "Перенаправляет запросы в сервис")
+
+Rel(hub1, load_balancer, "Транслирует видеопоток", "RTMP")
+Rel(load_balancer, splitter, "Направляет видеопоток на определённый инстанс", "H.264 + AAC")
+Rel(splitter, recorder, "H.264 + AAC")
+Rel(splitter, hls_encoder, "H.264 + AAC")
+Rel(hls_encoder, spa, "Транслирует видеопоток", "HTTPS")
+
+Rel(recorder, s3, "Записывает видеофайл в S3")
+Rel(recorder, metadata_service, "Оповещает сервис о том что запись завершена")
+Rel(metadata_service, s3, "Читает видеофайлы из S3")
+Rel(metadata_service, media_db, "Генерирует индекс и прочие метаданные для видеофайлов")
+
+@enduml

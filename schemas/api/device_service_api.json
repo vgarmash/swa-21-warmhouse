@@ -1,0 +1,1004 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Smart House Device Management API",
+    "description": "API для управления устройствами умного дома",
+    "version": "1.0.0",
+    "contact": {
+      "name": "API Support",
+      "email": "support@smarthouse.local"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.smarthouse.local/v1",
+      "description": "Production server"
+    },
+    {
+      "url": "https://dev-api.smarthouse.local/v1",
+      "description": "Development server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Devices",
+      "description": "Управление устройствами умного дома"
+    },
+    {
+      "name": "Device Commands",
+      "description": "Отправка команд устройствам"
+    },
+    {
+      "name": "Measurements",
+      "description": "Работа с измерениями устройств"
+    }
+  ],
+  "paths": {
+    "/devices": {
+      "get": {
+        "summary": "Получить список всех устройств",
+        "description": "Возвращает список всех устройств в системе с поддержкой пагинации",
+        "tags": ["Devices"],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Номер страницы",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Количество устройств на странице",
+            "schema": {
+              "type": "integer",
+              "default": 50
+            }
+          },
+          {
+            "name": "house_id",
+            "in": "query",
+            "description": "Фильтр по ID дома",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "device_type",
+            "in": "query",
+            "description": "Фильтр по типу устройства",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Успешный ответ со списком устройств",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceListResponse"
+                },
+                "examples": {
+                  "success": {
+                    "summary": "Успешное получение списка устройств",
+                    "value": {
+                      "success": true,
+                      "data": [
+                        {
+                          "id": 1,
+                          "name": "Умная лампа гостиная",
+                          "house_id": 1,
+                          "location_id": 1,
+                          "device_type": "light",
+                          "serial_number": "SN-LIGHT-001",
+                          "status": "online",
+                          "current_state": {
+                            "power": "on",
+                            "brightness": 80,
+                            "color": "#FFFFFF"
+                          },
+                          "created_at": "2024-01-15T10:30:00Z",
+                          "updated_at": "2024-01-15T14:25:00Z"
+                        },
+                        {
+                          "id": 2,
+                          "name": "Термостат",
+                          "house_id": 1,
+                          "location_id": 2,
+                          "device_type": "thermostat",
+                          "serial_number": "SN-THERM-001",
+                          "status": "online",
+                          "current_state": {
+                            "temperature": 22.5,
+                            "mode": "auto"
+                          },
+                          "created_at": "2024-01-15T10:35:00Z",
+                          "updated_at": "2024-01-15T14:20:00Z"
+                        }
+                      ],
+                      "pagination": {
+                        "page": 1,
+                        "limit": 50,
+                        "total": 2
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Внутренняя ошибка сервера",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Создать новое устройство",
+        "description": "Добавляет новое устройство в систему",
+        "tags": ["Devices"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeviceCreateRequest"
+              },
+              "examples": {
+                "createDevice": {
+                  "summary": "Пример создания устройства",
+                  "value": {
+                    "name": "Новая умная лампа",
+                    "house_id": 1,
+                    "location_id": 1,
+                    "device_type": "light",
+                    "serial_number": "SN-LIGHT-002",
+                    "initial_state": {
+                      "power": "off",
+                      "brightness": 50
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Устройство успешно создано",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceResponse"
+                },
+                "examples": {
+                  "created": {
+                    "summary": "Устройство создано",
+                    "value": {
+                      "success": true,
+                      "data": {
+                        "id": 3,
+                        "name": "Новая умная лампа",
+                        "house_id": 1,
+                        "location_id": 1,
+                        "device_type": "light",
+                        "serial_number": "SN-LIGHT-002",
+                        "status": "offline",
+                        "current_state": {
+                          "power": "off",
+                          "brightness": 50
+                        },
+                        "created_at": "2024-01-15T15:00:00Z",
+                        "updated_at": "2024-01-15T15:00:00Z"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Неверные данные запроса",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "validationError": {
+                    "summary": "Ошибка валидации",
+                    "value": {
+                      "success": false,
+                      "error": {
+                        "code": "VALIDATION_ERROR",
+                        "message": "Неверные данные запроса",
+                        "details": {
+                          "name": "Поле 'name' обязательно для заполнения",
+                          "serial_number": "Устройство с таким серийным номером уже существует"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/devices/{deviceId}": {
+      "get": {
+        "summary": "Получить информацию об устройстве",
+        "description": "Возвращает детальную информацию об устройстве по его ID",
+        "tags": ["Devices"],
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "path",
+            "required": true,
+            "description": "ID устройства",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Успешный ответ с информацией об устройстве",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceResponse"
+                },
+                "examples": {
+                  "success": {
+                    "summary": "Успешное получение устройства",
+                    "value": {
+                      "success": true,
+                      "data": {
+                        "id": 1,
+                        "name": "Умная лампа гостиная",
+                        "house_id": 1,
+                        "location_id": 1,
+                        "device_type": "light",
+                        "serial_number": "SN-LIGHT-001",
+                        "status": "online",
+                        "current_state": {
+                          "power": "on",
+                          "brightness": 80,
+                          "color": "#FFFFFF"
+                        },
+                        "capabilities": ["power", "brightness", "color"],
+                        "created_at": "2024-01-15T10:30:00Z",
+                        "updated_at": "2024-01-15T14:25:00Z"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Устройство не найдено",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "notFound": {
+                    "summary": "Устройство не найдено",
+                    "value": {
+                      "success": false,
+                      "error": {
+                        "code": "DEVICE_NOT_FOUND",
+                        "message": "Устройство с ID 999 не найдено"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Обновить информацию об устройстве",
+        "description": "Обновляет базовую информацию об устройстве (название, местоположение и т.д.)",
+        "tags": ["Devices"],
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeviceUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Информация об устройстве успешно обновлена",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Устройство не найдено"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Удалить устройство",
+        "description": "Удаляет устройство из системы",
+        "tags": ["Devices"],
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Устройство успешно удалено"
+          },
+          "404": {
+            "description": "Устройство не найдено"
+          },
+          "409": {
+            "description": "Устройство нельзя удалить (например, есть активные измерения)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/devices/{deviceId}/state": {
+      "get": {
+        "summary": "Получить текущее состояние устройства",
+        "description": "Возвращает текущее состояние и статус устройства",
+        "tags": ["Devices"],
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Успешный ответ с состоянием устройства",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceStateResponse"
+                },
+                "examples": {
+                  "deviceState": {
+                    "summary": "Состояние устройства",
+                    "value": {
+                      "success": true,
+                      "data": {
+                        "device_id": 1,
+                        "status": "online",
+                        "current_state": {
+                          "power": "on",
+                          "brightness": 80,
+                          "color": "#FFFFFF"
+                        },
+                        "last_seen": "2024-01-15T14:25:00Z",
+                        "battery_level": 95
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Обновить состояние устройства",
+        "description": "Обновляет состояние устройства (включение/выключение, настройки и т.д.)",
+        "tags": ["Devices"],
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeviceStateUpdateRequest"
+              },
+              "examples": {
+                "updateState": {
+                  "summary": "Обновление состояния лампы",
+                  "value": {
+                    "state": {
+                      "power": "on",
+                      "brightness": 75,
+                      "color": "#FFA500"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Состояние устройства успешно обновлено",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceStateResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Неверное состояние устройства",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "423": {
+            "description": "Устройство заблокировано или недоступно",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/devices/{deviceId}/commands": {
+      "post": {
+        "summary": "Отправить команду устройству",
+        "description": "Отправляет команду на выполнение устройству",
+        "tags": ["Device Commands"],
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeviceCommandRequest"
+              },
+              "examples": {
+                "toggleCommand": {
+                  "summary": "Команда переключения",
+                  "value": {
+                    "command": "toggle",
+                    "parameters": {}
+                  }
+                },
+                "setColorCommand": {
+                  "summary": "Команда смены цвета",
+                  "value": {
+                    "command": "set_color",
+                    "parameters": {
+                      "color": "#FF0000",
+                      "duration": 2
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Команда принята к выполнению",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommandResponse"
+                },
+                "examples": {
+                  "commandAccepted": {
+                    "summary": "Команда принята",
+                    "value": {
+                      "success": true,
+                      "data": {
+                        "command_id": "cmd-12345",
+                        "device_id": 1,
+                        "command": "set_color",
+                        "status": "accepted",
+                        "message": "Команда принята к выполнению"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Неверная команда или параметры",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Устройство не найдено"
+          }
+        }
+      }
+    },
+    "/devices/{deviceId}/measurements": {
+      "get": {
+        "summary": "Получить историю измерений устройства",
+        "description": "Возвращает историю измерений и показаний устройства",
+        "tags": ["Devices", "Measurements"],
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "description": "Начальная дата периода (формат ISO 8601)",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "description": "Конечная дата периода (формат ISO 8601)",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Ограничение количества записей",
+            "schema": {
+              "type": "integer",
+              "default": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Успешный ответ с историей измерений",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeasurementListResponse"
+                },
+                "examples": {
+                  "measurements": {
+                    "summary": "История измерений",
+                    "value": {
+                      "success": true,
+                      "data": [
+                        {
+                          "source_id": 1,
+                          "source_type": "light",
+                          "value": "{\"power\": \"on\", \"brightness\": 80}",
+                          "data_type": "device_state",
+                          "timestamp": "2024-01-15T14:25:00Z"
+                        },
+                        {
+                          "source_id": 1,
+                          "source_type": "light",
+                          "value": "75",
+                          "data_type": "brightness",
+                          "timestamp": "2024-01-15T14:20:00Z"
+                        }
+                      ],
+                      "pagination": {
+                        "total": 2
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Device": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "Умная лампа гостиная"
+          },
+          "house_id": {
+            "type": "integer",
+            "format": "int64",
+            "example": 1
+          },
+          "location_id": {
+            "type": "integer",
+            "format": "int64",
+            "example": 1
+          },
+          "device_type": {
+            "type": "string",
+            "example": "light"
+          },
+          "serial_number": {
+            "type": "string",
+            "example": "SN-LIGHT-001"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["online", "offline", "error", "updating"],
+            "example": "online"
+          },
+          "current_state": {
+            "type": "object",
+            "description": "Текущее состояние устройства"
+          },
+          "capabilities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": ["power", "brightness", "color"]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "DeviceCreateRequest": {
+        "type": "object",
+        "required": ["name", "house_id", "device_type", "serial_number"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "house_id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "location_id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "device_type": {
+            "type": "string"
+          },
+          "serial_number": {
+            "type": "string"
+          },
+          "initial_state": {
+            "type": "object"
+          }
+        }
+      },
+      "DeviceUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "location_id": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "DeviceStateUpdateRequest": {
+        "type": "object",
+        "required": ["state"],
+        "properties": {
+          "state": {
+            "type": "object",
+            "description": "Новое состояние устройства"
+          }
+        }
+      },
+      "DeviceCommandRequest": {
+        "type": "object",
+        "required": ["command"],
+        "properties": {
+          "command": {
+            "type": "string",
+            "description": "Тип команды",
+            "example": "toggle"
+          },
+          "parameters": {
+            "type": "object",
+            "description": "Параметры команды"
+          }
+        }
+      },
+      "DeviceResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/Device"
+          }
+        }
+      },
+      "DeviceListResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Device"
+            }
+          },
+          "pagination": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "integer"
+              },
+              "limit": {
+                "type": "integer"
+              },
+              "total": {
+                "type": "integer"
+              }
+            }
+          }
+        }
+      },
+      "DeviceStateResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "device_id": {
+                "type": "integer"
+              },
+              "status": {
+                "type": "string"
+              },
+              "current_state": {
+                "type": "object"
+              },
+              "last_seen": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "battery_level": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              }
+            }
+          }
+        }
+      },
+      "CommandResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "command_id": {
+                "type": "string"
+              },
+              "device_id": {
+                "type": "integer"
+              },
+              "command": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": ["accepted", "rejected", "executing", "completed", "failed"]
+              },
+              "message": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "MeasurementListResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Measurement"
+            }
+          },
+          "pagination": {
+            "type": "object",
+            "properties": {
+              "total": {
+                "type": "integer"
+              }
+            }
+          }
+        }
+      },
+      "Measurement": {
+        "type": "object",
+        "properties": {
+          "source_id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "source_type": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          },
+          "data_type": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": false
+          },
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "example": "DEVICE_NOT_FOUND"
+              },
+              "message": {
+                "type": "string",
+                "example": "Устройство не найдено"
+              },
+              "details": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "NotFound": {
+        "description": "Ресурс не найден",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "ValidationError": {
+        "description": "Ошибка валидации данных",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "ServerError": {
+        "description": "Внутренняя ошибка сервера",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      }
+    }
+  }
+}
